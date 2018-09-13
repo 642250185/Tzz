@@ -51,7 +51,6 @@ const getAuctionHistory = async (id) => {
             .set('Cookie', cookie);
         const {priceList} = JSON.parse(result.text).respData;
         const list = [];
-
         for(let i in priceList) {
             const item = priceList[i];
             const row = [];
@@ -62,15 +61,13 @@ const getAuctionHistory = async (id) => {
             row.push(formatDate(new Date(Number(item.timestamp))));
             list.push(row);
         }
-
         return list;
-    }catch (e) {
+    } catch (e) {
         throw new Error(e);
     }
 };
 
-function isJSON (str)
-{
+function isJSON (str) {
     if (typeof str == 'string') {
         try {
             var obj = JSON.parse(str);
@@ -91,8 +88,10 @@ const getOptions = async (id, qcId) => {
         const result = await request.get(`https://youpin.58.com/v/helpsale/report?id=${qcId}`)
             .set('Cookie', cookie);
         const {data} = JSON.parse(result.text);
+        if(data === null){  // API接口返回数据存在为空的场景
+            return [];
+        }
         const {basicCheck, basicInfo, displayCheck, basicCheckList, functionCheck} = data;
-
         const list = [];
         list.push(id);
         // ① 基础检查
@@ -170,21 +169,21 @@ const exportExcel = async () => {
         const row = [];
         const {activityId, zzItemId} = item;
         const saleReport = await getSalesReport(activityId);
+        if(saleReport === null){    // API接口返回数据存在为空的场景
+            continue;
+        }
         const {xinghaoId, qcId, productName, startPrice, dealPrice} = saleReport;
-
         row.push(activityId.toString());
         row.push(xinghaoId);
         row.push(spuMap.get(xinghaoId.toString()) || '');
         row.push(productName);
         row.push(startPrice);
         row.push(dealPrice);
-
         const auctionHistories = await getAuctionHistory(zzItemId);
         row.push(auctionHistories.length);
         auctionHistories.forEach(auc => {
             acutionList.push(auc);
         });
-
         if(auctionHistories.length > 0) {
             const bidder = auctionHistories[0];
             row.push(bidder[1]);
