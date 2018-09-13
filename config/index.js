@@ -1,7 +1,7 @@
 const path = require('path');
 
 const config = {
-    PPU: 'TT=47c6fb10300b86636675d57b3106ccedadf5ea1c&UID=58317480120192256&SF=ZHUANZHUAN&SCT=1531974203093&V=1&ET=1534562603093',
+    PPU: 'TT=89ad7fa866476db8c3be76b93c5c571a307aa0ea&UID=46028783232276&SF=ZHUANZHUAN&SCT=1536823103574&V=1&ET=1539411503574',
     downloadPath: path.join(__dirname, '..','download'),
     historyUrl: 'http://bijia.huishoubao.com:4003/history',
     //默认取前7天的数据，不包括当天
@@ -15,5 +15,6 @@ const config = {
         return global.$config;
     }
 };
+
 
 module.exports = config.env();

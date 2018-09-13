@@ -7,7 +7,6 @@ const spuMap = new Map();
 const fs = require('fs');
 let cookie;
 
-
 const getSpuMapping = () => {
     Object.keys(spuMappings).forEach(function(key){
         spuMappings[key].data.forEach(function(item){
@@ -20,25 +19,6 @@ const formatCookie = () => {
     cookie = `PPU="${PPU}"`;
     console.info('cookie: ', cookie);
 };
-
-const test = async (isbn) =>
-{
-    try {
-        formatCookie();
-        let result = await request.get(`https://zhuan.58.com/zzopen/book/getBook?isbn=${isbn}&zzFrom=APP_syfbtc_shoushu&featureId=`)
-            .set('Cookie', cookie);
-
-        result = JSON.parse(result.text);
-        console.info('result: ', result);
-    } catch (e) {
-        console.error(e);
-        return e;
-    }
-};
-
-test('9787518413768');
-
-
 
 const getHistory = async () => {
     const result = await request.get(historyUrl)
