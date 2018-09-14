@@ -5,7 +5,9 @@ const config = {
     downloadPath: path.join(__dirname, '..','download'),
     historyUrl: 'http://bijia.huishoubao.com:4003/history',
     //默认取前7天的数据，不包括当天
-    defaultDay: 7,
+    defaultDay: 1,
+	//结束时间, 默认为空
+	endDate: '2018-09-06',
     /**
      * 返回或设置当前环镜
      */

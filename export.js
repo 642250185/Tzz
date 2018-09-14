@@ -1,5 +1,5 @@
 const request = require('superagent');
-const {PPU, historyUrl, downloadPath, defaultDay} = require('./config');
+const {PPU, historyUrl, downloadPath, defaultDay, endDate} = require('./config');
 const {formatDate} = require('./util/dateUtil');
 const xlsx = require('node-xlsx').default;
 const spuMappings = xlsx.parse('./mapping.xls');
@@ -21,9 +21,9 @@ const formatCookie = () => {
 };
 
 const getHistory = async () => {
-    const result = await request.get(historyUrl)
-        .query({day: defaultDay});
-    return JSON.parse(result.text);
+	const result = await request.get(historyUrl)
+		.query({day: defaultDay, endDate});
+	return JSON.parse(result.text);
 };
 
 const getSalesReport = async (id) => {
@@ -209,5 +209,6 @@ const exportExcel = async () => {
     ]));
     console.log(`爬取结束, 成功导出文件: ${filename}`);
 };
+
 
 exports.exportExcel = exportExcel;

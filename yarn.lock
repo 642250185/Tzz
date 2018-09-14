@@ -102,6 +102,10 @@ isarray@~1.0.0:
   version "1.0.0"
   resolved "http://registry.npm.taobao.org/isarray/download/isarray-1.0.0.tgz#bb935d48582cba168c06834957a54a3e07124f11"
 
+loadsh@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/loadsh/-/loadsh-0.0.1.tgz#f3af42708f3961acdb9861ee3b448494eb23aa44"
+
 methods@^1.1.1:
   version "1.1.2"
   resolved "http://registry.npm.taobao.org/methods/download/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
