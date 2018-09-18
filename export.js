@@ -5,10 +5,12 @@ const request = require('superagent');
 const xlsx = require('node-xlsx').default;
 const {formatDate} = require('./util/dateUtil');
 const spuMappings = xlsx.parse('./mapping.xls');
-const {PPU, historyUrl, downloadPath, dataPath, defaultDay, endDate} = require('./config');
+const {PPU, historyUrl, downloadPath, dataPath, statisticsPath, defaultDay, endDate} = require('./config');
 
 const spuMap = new Map();
 let cookie, temporary;
+let failure = 0;
+const COMMOM = {brand: "品牌", model: "型号"};
 
 const getSpuMapping = () => {
     Object.keys(spuMappings).forEach(function(key){
@@ -109,9 +111,33 @@ const getItem = async () => {
     return JSON.parse(fs.readFileSync(dataPath));
 };
 
+const getBasic = async (respData) => {
+    let brand, model;
+    const basicCheck = respData.basicCheck;
+    if(!_.isEmpty(basicCheck)){
+        for(let basic of basicCheck){
+            if(basic.key == COMMOM.brand){
+                brand = basic.value;
+            }
+            if(basic.key == COMMOM.model){
+                model = basic.value;
+            }
+        }
+        if(!brand && !model){
+            brand = respData.brand;
+            model = respData.model;
+        }
+    } else {
+        brand = respData.brand;
+        model = respData.model;
+    }
+    return {brand, model};
+};
+
 //机型检测数据
 const getOptions = async (id, qcId) => {
-    try {
+    // 旧API接口
+    /*try {
         const result = await request.get(`https://youpin.58.com/v/helpsale/report?id=${qcId}`)
             .set('Cookie', cookie);
         const {data} = JSON.parse(result.text);
@@ -173,8 +199,88 @@ const getOptions = async (id, qcId) => {
                 list.push(`${key}:${JSON.stringify(itemChild)}`);
             }
         }
+
+        console.info('list: ', list);
+
         return list;
-    }catch (e) {
+    } catch (e) {
+        throw new Error(e);
+    }*/
+
+    // 新API接口
+    try {
+        const final = [];
+        const result = await request.get(`https://app.zhuanzhuan.com/zzopen/ypdeal/report?id=${qcId}`)
+            .set('Cookie', cookie);
+        if(_.isEmpty(result)){
+            console.warn(`${++failure} API接口没有返回数据。`);
+            return final;
+        }
+        const {respCode, respData, errorMsg} = JSON.parse(result.text);
+        console.info(`respCode: ${respCode}, errorMsg: ${errorMsg}`);
+
+        if(respCode === 0){
+            if(_.isEmpty(respData)){
+                console.warn(`${++failure} 警告: API接口无返回数据!`);
+                return final;
+            }
+            // SKU
+            let {brand, model} = await getBasic(respData);
+            console.info('brand: %j, model: %j', brand, model);
+            final.push(`${brand} ${model}`);
+            final.push(respData.basicInfo);
+            // 机况
+            const basicCheckList = respData.basicCheckList;
+            if(!_.isEmpty(basicCheckList)){
+                for(let basicChec of basicCheckList){
+                    const {key, itemList} = basicChec;
+                    let itemChild = {};
+                    for(let child of itemList){
+                        itemChild[child.key] = child.value;
+                    }
+                    final.push(`${key}:${JSON.stringify(itemChild)}`);
+                }
+            }
+            // 设备功能
+            const funList = [];
+            const functionCheck = respData.functionCheck;
+            if(!_.isEmpty(functionCheck)){
+                functionCheck.list.forEach(item => {
+                    const isJson = isJSON(item);
+                    if(isJson){
+                        let obj = JSON.parse(item);
+                        funList.push(obj.desc)
+                    } else {
+                        funList.push(item.desc)
+                    }
+                });
+                final.push(funList.join(" # "));
+            } else {
+                final.push("");
+            }
+            // 屏幕显示
+            const displayList = [];
+            const displayCheck = respData.displayCheck;
+            if(!_.isEmpty(displayCheck)){
+                displayCheck.list.forEach(item => {
+                    const isJson = isJSON(item);
+                    if(isJson){
+                        let obj = JSON.parse(item);
+                        displayList.push(obj.desc);
+                    } else {
+                        displayList.push(item.desc);
+                    }
+                });
+                final.push(displayList.join(" # "));
+            } else {
+                final.push("");
+            }
+            // 工程师有话说
+            final.push(respData.zjStr);
+        }
+        console.info('final: %j', final);
+        return final;
+    } catch (e) {
         throw new Error(e);
     }
 };
@@ -189,6 +295,7 @@ const exportExcel = async () => {
     let spuAcutionList = [['竞拍编号', '机型ID', '回收宝机型ID', '机型名称', '起拍价', '成交价', '出价次数', '中标人', '中标人头像链接', '订单状态']];
     const currentTime = formatDate(new Date(), 'YYYY-MM-DD-HH-mm-ss');
     try {
+        let num = 0;
         formatCookie();
         getSpuMapping();
         let items = await getHistory();
@@ -196,9 +303,8 @@ const exportExcel = async () => {
         // 获取上次中断的items
         const interruptItem = await getItem();
         if(!_.isEmpty(interruptItem)){
-            items = await compareItem(items, interruptItem)
+            items = await compareItem(items, interruptItem);
         }
-        let num = 0;
         for(let item of items) {
             temporary = item;
             console.log('>>num: %d, item: %j',++num, item);
@@ -211,7 +317,11 @@ const exportExcel = async () => {
             const {xinghaoId, qcId, productName, startPrice, dealPrice} = saleReport;
             row.push(activityId.toString());
             row.push(xinghaoId);
-            row.push(spuMap.get(xinghaoId.toString()) || '');
+            if(!_.isEmpty(xinghaoId)){
+                row.push(spuMap.get(xinghaoId.toString()) || '');
+            } else {
+                row.push('');
+            }
             row.push(productName);
             row.push(startPrice);
             row.push(dealPrice);
@@ -232,8 +342,8 @@ const exportExcel = async () => {
             }
             spuAcutionList.push(row);
             // ### 商品详情API接口存在问题。
-            const spuinfo = await getOptions(activityId, qcId);
-            console.info('size: %d',spuinfo.length);
+            const spuinfo =  await getOptions(activityId, qcId);
+            console.info('size: %d', spuinfo.length);
             spuinfoList.push(spuinfo);
         }
         const filename = `${downloadPath}/${currentTime}.xlsx`;
@@ -246,7 +356,8 @@ const exportExcel = async () => {
         // 清空中断的数据
         await saveItem({});
     } catch (e) {
-        await saveItem(temporary);
+        console.error('exportExcelError: ', e);
+        await saveItem(temporary || {});
         const filename = `${downloadPath}/部分#${currentTime}.xlsx`;
         fs.writeFileSync(filename, xlsx.build([
             {name: '商品竞拍信息', data: spuAcutionList},
