@@ -224,6 +224,8 @@ const getOptions = async (id, qcId) => {
                 console.warn(`${++failure} 警告: API接口无返回数据!`);
                 return final;
             }
+            // 竞拍编号
+            final.push(id);
             // SKU
             let {brand, model} = await getBasic(respData);
             console.info('brand: %j, model: %j', brand, model);
@@ -278,7 +280,7 @@ const getOptions = async (id, qcId) => {
             // 工程师有话说
             final.push(respData.zjStr);
         }
-        console.info('final: %j', final);
+        // console.info('final: %j', final);
         return final;
     } catch (e) {
         throw new Error(e);
