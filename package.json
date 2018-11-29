@@ -5,6 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "fs-extra": "^7.0.0",
+    "js-sleep": "^1.0.0",
     "loadsh": "^0.0.1",
     "lodash": "^4.17.11",
     "moment": "^2.21.0",

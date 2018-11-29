@@ -114,6 +114,10 @@ isarray@~1.0.0:
   version "1.0.0"
   resolved "http://registry.npm.taobao.org/isarray/download/isarray-1.0.0.tgz#bb935d48582cba168c06834957a54a3e07124f11"
 
+js-sleep@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/js-sleep/-/js-sleep-1.0.0.tgz#69c38f28217facb57229bf2568f75b288f93985f"
+
 jsonfile@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-4.0.0.tgz#8771aae0799b64076b76640fca058f9c10e33ecb"

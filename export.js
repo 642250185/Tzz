@@ -3,6 +3,7 @@ const _path = require('path');
 const fs = require('fs-extra');
 const request = require('superagent');
 const xlsx = require('node-xlsx').default;
+const sleep = require('js-sleep/js-sleep');
 const {formatDate} = require('./util/dateUtil');
 const spuMappings = xlsx.parse('./mapping.xls');
 const {PPU, historyUrl, downloadPath, dataPath, statisticsPath, defaultDay, endDate} = require('./config');
@@ -33,6 +34,7 @@ const getHistory = async () => {
 
 const getSalesReport = async (id) => {
     try {
+        console.info('id >>> :', id);
         const result = await request.get(`https://zhuan.58.com/zzopen/ypdeal/buyerActivityDetail?activityId=${id}`)
             .set('Cookie', cookie);
         const {respData, respCode} = JSON.parse(result.text);
@@ -308,10 +310,12 @@ const exportExcel = async () => {
             items = await compareItem(items, interruptItem);
         }
         for(let item of items) {
+            await sleep(1000 * 2);
             temporary = item;
             console.log('>>num: %d, item: %j',++num, item);
             const row = [];
             const {activityId, zzItemId} = item;
+            console.info(`${activityId}  ---  ${zzItemId}`);
             const saleReport = await getSalesReport(activityId);
             if(saleReport === null){    // API接口返回数据存在为空的场景
                 continue;
@@ -347,6 +351,9 @@ const exportExcel = async () => {
             const spuinfo =  await getOptions(activityId, qcId);
             console.info('size: %d', spuinfo.length);
             spuinfoList.push(spuinfo);
+            // if(num === 3){
+            //     break;
+            // }
         }
         const filename = `${downloadPath}/${currentTime}.xlsx`;
         fs.writeFileSync(filename, xlsx.build([
