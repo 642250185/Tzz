@@ -228,11 +228,11 @@ const getHistory = async(hList, pageNum) => {
     try {
         formatCookie();
         const cateId = 101;
-        const pageSize = 200;
+        const pageSize = 300;
         const auctionType = 0;
         if(_.isEmpty(hList)){
             hList = [];
-            pageNum = 1
+            pageNum = 320
         }
         const path = `${domain}${openRoute}${historyPath}?cateId=${cateId}&pageNum=${pageNum}&auctionType=${auctionType}&pageSize=${pageSize}`;
         let result = await request.get(path).set('Cookie', cookie);
@@ -240,6 +240,7 @@ const getHistory = async(hList, pageNum) => {
         const {respCode, respData, errorMsg} = result;
         if(respCode === 0){
             const respList = [];
+            console.info(`第 [${pageNum}] 页, 每页 ${pageSize} 条, 结果: ${respData.length}`);
             for(const item of respData){
                 const qcId = await getQcId(item.activityId);
                 const record = await getBiddingMaxPeople(item.zzItemId);
@@ -257,10 +258,8 @@ const getHistory = async(hList, pageNum) => {
                     portrait    : record.portrait   // 中标人头像
                 });
             }
-            console.info(`第 [${pageNum}] 页, 每页 ${pageSize} 条, 结果: ${respData.length}`);
 
-
-            if(pageNum === 200){
+            if(pageNum === 383){
                 return hList;
             } else {
                 pageNum++;
