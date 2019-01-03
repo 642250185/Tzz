@@ -24,6 +24,7 @@ const getQcId = async(activityId) => {
         if(respCode === 0){
             return respData.qcId;
         } else {
+            console.warn(` getQcId >>>> respCode: ${respCode},  errorMsg: ${errorMsg}`);
             return "";
         }
     } catch (e) {
@@ -172,6 +173,8 @@ const getReport = async(activityId, qcId) => {
             }
             // TODO 工程师有话说
             final.push(respData.zjStr);
+        } else {
+            console.info(`商品详情: respCode: ${respCode},  errorMsg: ${errorMsg}`);
         }
         console.info(`index: [${++key}]   activityId: ${activityId}   final: ${final.length}   ${final}`);
         return final;
@@ -232,7 +235,7 @@ const getHistory = async(hList, pageNum) => {
         const auctionType = 0;
         if(_.isEmpty(hList)){
             hList = [];
-            pageNum = 320
+            pageNum = 364
         }
         const path = `${domain}${openRoute}${historyPath}?cateId=${cateId}&pageNum=${pageNum}&auctionType=${auctionType}&pageSize=${pageSize}`;
         let result = await request.get(path).set('Cookie', cookie);
@@ -259,10 +262,10 @@ const getHistory = async(hList, pageNum) => {
                 });
             }
 
-            if(pageNum === 383){
+            if(pageNum === 300){
                 return hList;
             } else {
-                pageNum++;
+                pageNum--;
                 hList = hList.concat(respList);
                 return await getHistory(hList, pageNum);
             }
@@ -291,7 +294,7 @@ const getHistory = async(hList, pageNum) => {
 
 const exportExcel = async() => {
     try {
-        let recordsList = [], reportList = [];
+        let recordsList = [];
         const historyList = await getHistory();
         console.info(`历史竞拍成交记录: ${historyList.length}`);
         const currentTime = formatDate(new Date(), 'YYYY-MM-DD-HH-mm-ss');
@@ -318,7 +321,7 @@ const exportExcel = async() => {
             historyTable.push(row);
             reportTable.push(_reportList);
         }
-        console.info(`历史竞拍成交记录-List: ${historyList.length},  竞拍流水总量: ${recordsList.length},  机型报告总量: ${reportList.length}`);
+        console.info(`历史竞拍成交记录-List: ${historyList.length},  竞拍流水总量: ${recordsList.length}`);
         for(const item of recordsList){
             const row = [];
             row.push(item.activityId);

@@ -1,7 +1,7 @@
 const path = require('path');
 
 const config = {
-    PPU: 'TT=24a0e9942d4bb8f0ae9f2d61366bb2ead6eb0335&UID=58317480120192256&SF=ZHUANZHUAN&SCT=1543402691989&V=1&ET=1545991091989',
+    PPU: 'TT=523e8ea8fdb9f3909f38e758621f3781c3f8db71&UID=46028783232276&SF=ZHUANZHUAN&SCT=1546501089213&V=1&ET=1549089489213',
 
     domain: 'https://app.zhuanzhuan.com/',
     openRoute: 'zzopen/ypdeal/',
